@@ -1,0 +1,17 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.7"
+mongodb = "3.1.0"
+serde = { version = "1.0.215", features = ["derive"] }
+tokio = { version = "1.41.1", features = ["full"] }
+tower-http = "0.6.1"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+chrono = {version = "0.4.38", features = ["serde"] }
+jsonwebtoken = "9.3.0"
+rust-argon2 = "2.1.0"
+serde_json = "1.0.132"
