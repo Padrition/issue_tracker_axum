@@ -3,7 +3,7 @@ use controllers::{auth_routers::auth_routers, fallback_route::handler_404};
 use tokio::net::TcpListener;
 use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use utils::shutdown::shutdown_signal;
+use utils::{db, shutdown::shutdown_signal};
 use std::{env, time::Duration};
 use tracing::Span;
 
@@ -32,6 +32,8 @@ async fn main() {
     .with(tracing_subscriber::fmt::layer())
     .init();
 
+    let client = db::connect_to_mongo().await;
+
     let microservice_address = format!("{}:{}", addr, port);
 
     let listener = TcpListener::bind(&microservice_address)
@@ -39,7 +41,7 @@ async fn main() {
         .unwrap();
 
     let app = Router::new()
-        .merge(auth_routers())
+        .merge(auth_routers(client))
         .fallback(handler_404)
         .layer((
             TraceLayer::new_for_http()
