@@ -23,9 +23,9 @@ pub async fn authorization_middleware(mut req: Request, next: Next) -> Result<Re
     let (_bearer, token) = (header.next(), header.next());
     let token_data = match decode_jwt(token.unwrap().to_string()){
         Ok(data) => data,
-        Err(_) => return Err(AuthError { 
-            message: "Unable to decode token".to_string(),
-             status_code: StatusCode::UNAUTHORIZED 
+        Err(err) => return Err(AuthError { 
+            message: format!("Unable to decode token :{}", err.1),
+            status_code: StatusCode::UNAUTHORIZED 
             }),
     };
 
