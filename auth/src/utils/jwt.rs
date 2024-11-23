@@ -7,12 +7,30 @@ use crate::models::jwt_model::Payload;
 
 use super::response::internal_error;
 
-pub fn encode_jwt(email: String)->Result<String, (StatusCode, String)>{
+pub fn encode_jwt(email: &String)->Result<String, (StatusCode, String)>{
     let secret = env::var("JWT_SECRET").map_err(internal_error)?;
     let now = Utc::now();
-    let expire = Duration::hours(24);
+    let expire = Duration::minutes(5);
     let exp = (now + expire).timestamp() as usize;
     let iat = now.timestamp() as usize;
+    let email = email.clone();
+    let claim = Payload{exp, iat,email};
+
+    encode(
+        &Header::default(), 
+        &claim,
+        &EncodingKey::from_secret(secret.as_ref())
+    )
+    .map_err(internal_error)
+}
+
+pub fn encode_refresh_jwt(email: &String)->Result<String, (StatusCode, String)>{
+    let secret = env::var("JWT_SECRET").map_err(internal_error)?;
+    let now = Utc::now();
+    let expire = Duration::days(30);
+    let exp = (now + expire).timestamp() as usize;
+    let iat = now.timestamp() as usize;
+    let email = email.clone();
     let claim = Payload{exp, iat,email};
 
     encode(

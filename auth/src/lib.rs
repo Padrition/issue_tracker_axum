@@ -2,6 +2,7 @@ pub mod middlewares;
 pub mod models;
 pub mod utils;
 pub mod services;
+pub mod repository;
 
 pub use middlewares::auth_middleware;
 pub use models::jwt_model::Payload;

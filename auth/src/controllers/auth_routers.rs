@@ -7,8 +7,8 @@ pub fn auth_routers(client: Client) -> Router {
     let collection = client.database("dira").collection("users");
 
     Router::new()
-        .route("/signin", post(sign_in))
-        .route("/hello", get(hello).layer(middleware::from_fn(authorization_middleware)))
+        .route("/signin", get(sign_in))
+        .route("/hello", get(hello).layer(middleware::from_fn_with_state(collection.clone(),authorization_middleware)))
         .route("/create", post(create_user))
         .with_state(collection)
 }

@@ -1,18 +1,22 @@
-use axum::{http::StatusCode, Json};
+use axum::{extract::State, http::StatusCode, Json};
+use mongodb::Collection;
 
-use crate::{models::auth_model::SignInData, utils::{jwt::encode_jwt, response::internal_error}};
+use crate::{models::{auth_model::SignInData, jwt_model::TokenResponse, user_model::User}, repository::user_repository::retrieve_user_by_email, utils::{jwt::{encode_jwt, encode_refresh_jwt}, response::internal_error}};
 
 use argon2::verify_encoded;
 
-use super::user_service::retrieve_user_by_email;
 
 pub async fn sign_in(
+    State(mongo) : State<Collection<User>>,
     Json(user_data) : Json<SignInData>
-) -> Result<Json<String>, (StatusCode, String)>{
+) -> Result<Json<TokenResponse>, (StatusCode, String)>{
 
-    let user = match retrieve_user_by_email(&user_data.email){
-        Some(user) => user,
-        None => return Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string())),
+    let user = match retrieve_user_by_email(&mongo,&user_data.email).await{
+        Ok(user) => match user{
+            Some(user) => user,
+            None => return Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string())),
+        },
+        Err(_) => return Err((StatusCode::INTERNAL_SERVER_ERROR, "Error retrieving user".to_string())),
     };
 
     match verify_encoded(&user.password_hash, &user_data.password.as_bytes()){
@@ -20,15 +24,28 @@ pub async fn sign_in(
             if !result{
                 return Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string()));
             }else{
-                let token = encode_jwt(user.email);
-                match token{
-                    Ok(token) => {
-                        return Ok(Json(token));
-                    },
+                let access_token = match encode_jwt(&user.email){
+                    Ok(token) => token,
                     Err(err)=>{
                         return Err(err);
                     },
-                }
+                };
+                
+                let refresh_token = match encode_refresh_jwt(&user.email){
+                    Ok(token) => token,
+                    Err(err)=>{
+                        return Err(err);
+                    },
+                };
+                
+                Ok(
+                    Json(
+                        TokenResponse{
+                            access_token: access_token,
+                            refresh_token: refresh_token
+                        }
+                    )
+                )
             }
         },
         Err(err) => {

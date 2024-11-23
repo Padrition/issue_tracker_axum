@@ -11,12 +11,12 @@ async fn main() {
         .await
         .unwrap();
 
-    let app = Router::new()
-        .route("/hello", get(hello).layer(middleware::from_fn(authorization_middleware)));
+    // let app = Router::new()
+    //     // .route("/hello", get(hello).layer(middleware::from_fn(authorization_middleware)));
 
-    axum::serve(listener, app)
-        .await
-        .unwrap();
+    // axum::serve(listener, app)
+    //     .await
+    //     .unwrap();
 }
 
 async fn hello()-> impl IntoResponse{

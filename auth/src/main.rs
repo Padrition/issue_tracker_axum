@@ -12,6 +12,7 @@ mod services;
 mod models;
 mod utils;
 mod middlewares;
+mod repository;
 
 #[tokio::main]
 async fn main() {
