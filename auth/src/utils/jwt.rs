@@ -25,7 +25,7 @@ pub fn encode_jwt(email: &String)->Result<String, (StatusCode, String)>{
 }
 
 pub fn encode_refresh_jwt(email: &String)->Result<String, (StatusCode, String)>{
-    let secret = env::var("JWT_SECRET").map_err(internal_error)?;
+    let secret = env::var("REFRESH_JWT_SECRET").map_err(internal_error)?;
     let now = Utc::now();
     let expire = Duration::days(30);
     let exp = (now + expire).timestamp() as usize;
@@ -39,6 +39,19 @@ pub fn encode_refresh_jwt(email: &String)->Result<String, (StatusCode, String)>{
         &EncodingKey::from_secret(secret.as_ref())
     )
     .map_err(internal_error)
+}
+
+pub fn decode_refresh_jwt(jwt_token: String) -> Result<TokenData<Payload>, (StatusCode, String)>{
+    let secret = env::var("REFRESH_JWT_SECRET").map_err(internal_error)?;
+    let result: TokenData<Payload> = decode(
+        &jwt_token, 
+        &DecodingKey::from_secret(secret.as_ref()),
+        &Validation::default()
+    )
+    .map_err(internal_error)?;
+    
+    Ok(result)
+
 }
 
 pub fn decode_jwt(jwt_token: String) -> Result<TokenData<Payload>, (StatusCode, String)>{
