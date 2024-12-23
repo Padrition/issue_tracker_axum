@@ -21,8 +21,8 @@ async fn main() {
     let addr = env::var("MICROSERVICE_ADDRESS")
         .expect("Could not interpret key MICROSERVICE_ADDRESS");
 
-    let port = env::var("MICROSERVICE_PORT")
-        .expect("Could not interpret key MICROSERVICE_PORT");
+    let port = env::var("AUTH_PORT")
+        .expect("Could not interpret key AUTH_PORT");
 
     tracing_subscriber::registry()
     .with(
