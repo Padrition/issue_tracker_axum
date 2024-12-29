@@ -2,5 +2,6 @@
 members = [
     "auth",
     "api",
+    "board_api",
  ]
  resolver = "2"

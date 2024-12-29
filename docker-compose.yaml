@@ -1,4 +1,18 @@
 services:
+  board_api:
+    build:
+      context: .
+      dockerfile: board_api/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - auth
+    ports:
+      - "3002:3002"
+    networks:
+      - backend
+
   auth:
     build:
       context: .
