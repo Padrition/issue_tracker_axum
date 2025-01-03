@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 auth ={ path = "../auth" }
-axum = "0.7.7"
+axum = {version = "0.7.7", features = ["macros"] }
 mongodb = "3.1.0"
 serde = { version = "1.0.215", features = ["derive"] }
 tokio = { version = "1.41.1", features = ["full"] }

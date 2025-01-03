@@ -1,7 +1,7 @@
 use std::{env, time::Duration};
 use auth::{shutdown_signal, utils::db};
 use axum::{http::Request,response::Response, Router};
-use controllers::fallback_controller::fallback_route;
+use controllers::{board_routers::board_routers, fallback_controller::fallback_route};
 use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::Span;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -9,6 +9,7 @@ use tokio::net::TcpListener;
 
 mod models;
 mod controllers;
+mod services;
 
 #[tokio::main]
 async fn main(){
@@ -38,6 +39,7 @@ async fn main(){
         .unwrap();
 
     let app = Router::new()
+        .merge(board_routers(client))
         .fallback(fallback_route)
         .layer((
             TraceLayer::new_for_http()
