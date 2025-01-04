@@ -9,7 +9,7 @@ pub fn auth_routers(client: Client) -> Router {
 
     Router::new()
         .route("/signin", post(sign_in))
-        .route("/refresh", get(refresh))
+        .route("/refresh", post(refresh))
         .route("/hello", get(hello).layer(middleware::from_fn_with_state(collection.clone(),authorization_middleware)))
         .route("/create", post(create_user))
         .with_state(collection)
