@@ -1,8 +1,8 @@
 use auth::auth_middleware::authorization_middleware;
-use axum::{middleware, routing::post, Router};
+use axum::{middleware, routing::{post, put}, Router};
 use mongodb::Client;
 
-use crate::services::board_service::create_board;
+use crate::services::board_service::{create_board, update_board};
 
 
 pub fn board_routers(client: Client) -> Router{
@@ -14,5 +14,6 @@ pub fn board_routers(client: Client) -> Router{
 
     Router::new()
         .route("/create", post(create_board).layer(middleware::from_fn_with_state(collection_user.clone(), authorization_middleware)))
+        .route("/update", put(update_board).layer(middleware::from_fn_with_state(collection_user.clone(), authorization_middleware)))
         .with_state(collection)
 }

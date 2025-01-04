@@ -1,5 +1,5 @@
 use mongodb::bson::oid::ObjectId;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use super::category::Category;
 
@@ -20,4 +20,22 @@ pub struct Board{
 pub struct BoardCreate{
     pub name: String,
     pub description: String,
+}
+
+#[derive(Serialize,Deserialize,Clone)]
+pub struct BoardUpdate{
+    #[serde(deserialize_with = "deserialize_object_id")]
+    pub id: ObjectId,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub members: Option<Vec<String>>,
+    pub categories: Option<Vec<Category>>
+}
+
+fn deserialize_object_id<'de, D>(deserializer: D) -> Result<ObjectId, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    ObjectId::parse_str(&s).map_err(serde::de::Error::custom)
 }
