@@ -3,33 +3,33 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use super::category::Category;
 
-#[derive(Serialize,Deserialize,Clone)]
-pub struct Board{
-    #[serde(rename="_id", skip_serializing_if = "Option::is_none")]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Board {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,
     pub description: String,
-    #[serde(rename="createdBy")]
+    #[serde(rename = "createdBy")]
     pub created_by: String,
     pub members: Vec<String>,
     pub categories: Vec<Category>,
-    pub issues: Vec<ObjectId>
+    pub issues: Vec<ObjectId>,
 }
 
-#[derive(Serialize,Deserialize,Clone)]
-pub struct BoardCreate{
+#[derive(Serialize, Deserialize, Clone)]
+pub struct BoardCreate {
     pub name: String,
     pub description: String,
 }
 
-#[derive(Serialize,Deserialize,Clone)]
-pub struct BoardUpdate{
+#[derive(Serialize, Deserialize, Clone)]
+pub struct BoardUpdate {
     #[serde(deserialize_with = "deserialize_object_id")]
     pub id: ObjectId,
     pub name: Option<String>,
     pub description: Option<String>,
     pub members: Option<Vec<String>>,
-    pub categories: Option<Vec<Category>>
+    pub categories: Option<Vec<Category>>,
 }
 
 fn deserialize_object_id<'de, D>(deserializer: D) -> Result<ObjectId, D::Error>

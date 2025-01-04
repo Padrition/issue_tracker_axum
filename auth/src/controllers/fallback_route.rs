@@ -1,5 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse};
 
-pub async fn handler_404() -> impl IntoResponse{
+pub async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "Not found".to_string())
 }
