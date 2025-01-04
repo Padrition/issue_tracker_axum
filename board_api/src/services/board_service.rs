@@ -1,9 +1,14 @@
 use auth::models::user_model::User;
-use axum::{debug_handler, extract::State, http::StatusCode, Extension, Json};
+use axum::{
+    debug_handler,
+    extract::{Path, State},
+    http::StatusCode,
+    Extension, Json,
+};
 use futures::TryStreamExt;
 use mongodb::{
     bson::{doc, oid::ObjectId},
-    results::InsertOneResult,
+    results::{DeleteResult, InsertOneResult},
     Collection,
 };
 
@@ -144,6 +149,53 @@ pub async fn get_boards(
                 message: format!("Error finding boards: {err}"),
                 status_code: StatusCode::INTERNAL_SERVER_ERROR,
             })
+        }
+    }
+}
+
+#[debug_handler]
+pub async fn delete_board(
+    State(mongo): State<Collection<Board>>,
+    Extension(current_user): Extension<User>,
+    Path(id): Path<String>,
+) -> Result<Json<DeleteResult>, BoardError> {
+    let objid = ObjectId::parse_str(&id).map_err(|err| BoardError {
+        message: format!("Error parsing id to ObjectId: {err}"),
+        status_code: StatusCode::INTERNAL_SERVER_ERROR,
+    })?;
+
+    match mongo.find_one(doc! {"_id": objid}).await {
+        Ok(result) => match result {
+            Some(board) => {
+                if &current_user.email != &board.created_by {
+                    return Err(BoardError {
+                        message: "Forbidden: Board must be deleted by a creator".to_string(),
+                        status_code: StatusCode::FORBIDDEN,
+                    });
+                }
+
+                match mongo.delete_one(doc! {"_id": objid}).await {
+                    Ok(result) => return Ok(Json(result)),
+                    Err(err) => {
+                        return Err(BoardError {
+                            message: format!("Error deleting board: {err}"),
+                            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                        });
+                    }
+                }
+            }
+            None => {
+                return Err(BoardError {
+                    message: "Board not found".to_string(),
+                    status_code: StatusCode::NOT_FOUND,
+                })
+            }
+        },
+        Err(err) => {
+            return Err(BoardError {
+                message: format!("Error finding board: {err}"),
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            });
         }
     }
 }

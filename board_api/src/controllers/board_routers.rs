@@ -1,12 +1,12 @@
 use auth::auth_middleware::authorization_middleware;
 use axum::{
     middleware,
-    routing::{get, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 use mongodb::Client;
 
-use crate::services::board_service::{create_board, get_boards, update_board};
+use crate::services::board_service::{create_board, delete_board, get_boards, update_board};
 
 pub fn board_routers(client: Client) -> Router {
     let collection = client
@@ -35,6 +35,13 @@ pub fn board_routers(client: Client) -> Router {
         .route(
             "/boards",
             get(get_boards).layer(middleware::from_fn_with_state(
+                collection_user.clone(),
+                authorization_middleware,
+            )),
+        )
+        .route(
+            "/delete/:id",
+            delete(delete_board).layer(middleware::from_fn_with_state(
                 collection_user.clone(),
                 authorization_middleware,
             )),
