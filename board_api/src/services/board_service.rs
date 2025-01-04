@@ -1,6 +1,7 @@
 use auth::models::user_model::User;
 use axum::{debug_handler, extract::State, http::StatusCode, Extension, Json};
 use mongodb::{bson::{doc, oid::ObjectId}, results::InsertOneResult, Collection};
+use futures::TryStreamExt;
 
 use crate::models::{board_model::{Board, BoardCreate, BoardUpdate}, board_response_model::BoardError, category::Category};
 
@@ -106,4 +107,28 @@ pub async fn update_board(
             status_code: StatusCode::INTERNAL_SERVER_ERROR
         }),
     }
+}
+
+#[debug_handler]
+pub async fn get_boards(
+    State(mongo): State<Collection<Board>>,
+    Extension(current_user): Extension<User>
+)-> Result<Json<Vec<Board>>, BoardError>{
+
+    match mongo.find(doc! {"members": &current_user.email}).await {
+        Ok(cursor) => {
+            let boards : Vec<Board> = cursor.try_collect().await.map_err(|err|
+                BoardError{
+                    message: format!("Error collecting boards: {err}"),
+                    status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                }
+            )?;
+            Ok(Json(boards))
+        },
+        Err(err) => return Err(BoardError{
+            message: format!("Error finding boards: {err}"),
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+        }),
+    }
+
 }
