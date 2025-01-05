@@ -6,7 +6,9 @@ use axum::{
 };
 use mongodb::Client;
 
-use crate::services::board_service::{create_board, delete_board, get_boards, update_board};
+use crate::services::board_service::{
+    create_board, delete_board, get_board, get_boards, update_board,
+};
 
 pub fn board_routers(client: Client) -> Router {
     let collection = client
@@ -46,5 +48,10 @@ pub fn board_routers(client: Client) -> Router {
                 authorization_middleware,
             )),
         )
+        .route("/get/:id", get(get_board))
+        .layer(middleware::from_fn_with_state(
+            collection_user.clone(),
+            authorization_middleware,
+        ))
         .with_state(collection)
 }

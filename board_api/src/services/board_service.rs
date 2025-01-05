@@ -199,3 +199,40 @@ pub async fn delete_board(
         }
     }
 }
+
+pub async fn get_board(
+    State(mongo): State<Collection<Board>>,
+    Extension(current_user): Extension<User>,
+    Path(id): Path<String>,
+) -> Result<Json<Board>, BoardError> {
+    let objid = ObjectId::parse_str(&id).map_err(|err| BoardError {
+        message: format!("Error parsing id to ObjectId: {err}"),
+        status_code: StatusCode::INTERNAL_SERVER_ERROR,
+    })?;
+
+    match mongo.find_one(doc! {"_id": objid}).await {
+        Ok(result) => match result {
+            Some(board) => {
+                if !board.members.contains(&current_user.email) {
+                    return Err(BoardError {
+                        message: "Forbidden: You must be a board member".to_string(),
+                        status_code: StatusCode::FORBIDDEN,
+                    });
+                }
+                return Ok(Json(board));
+            }
+            None => {
+                return Err(BoardError {
+                    message: "Board not found".to_string(),
+                    status_code: StatusCode::NOT_FOUND,
+                })
+            }
+        },
+        Err(err) => {
+            return Err(BoardError {
+                message: format!("Error finding board: {err}"),
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            })
+        }
+    }
+}
