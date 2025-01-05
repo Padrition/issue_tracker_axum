@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "auth",
-    "api",
     "board_api",
     "issue_api",
  ]
