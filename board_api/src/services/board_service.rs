@@ -13,7 +13,7 @@ use mongodb::{
 };
 
 use crate::models::{
-    board_model::{Board, BoardCreate, BoardUpdate},
+    board_model::{Board, BoardCreate, BoardResponse, BoardUpdate},
     board_response_model::BoardError,
     category::Category,
 };
@@ -204,7 +204,7 @@ pub async fn get_board(
     State(mongo): State<Collection<Board>>,
     Extension(current_user): Extension<User>,
     Path(id): Path<String>,
-) -> Result<Json<Board>, BoardError> {
+) -> Result<Json<BoardResponse>, BoardError> {
     let objid = ObjectId::parse_str(&id).map_err(|err| BoardError {
         message: format!("Error parsing id to ObjectId: {err}"),
         status_code: StatusCode::INTERNAL_SERVER_ERROR,
@@ -219,7 +219,16 @@ pub async fn get_board(
                         status_code: StatusCode::FORBIDDEN,
                     });
                 }
-                return Ok(Json(board));
+                return Ok(Json(BoardResponse {
+                    id,
+                    name: board.name,
+                    description: board.description,
+                    is_creator: board.created_by.eq(&current_user.email),
+                    members: board.members,
+                    categories: board.categories,
+                    issues: board.issues,
+                    created_by: board.created_by,
+                }));
             }
             None => {
                 return Err(BoardError {

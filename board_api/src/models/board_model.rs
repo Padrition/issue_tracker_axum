@@ -16,6 +16,20 @@ pub struct Board {
     pub issues: Vec<ObjectId>,
 }
 
+#[derive(Serialize)]
+pub struct BoardResponse {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    #[serde(rename = "createdBy")]
+    pub created_by: String,
+    #[serde(rename = "isCreator")]
+    pub is_creator: bool,
+    pub members: Vec<String>,
+    pub categories: Vec<Category>,
+    pub issues: Vec<ObjectId>,
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct BoardCreate {
     pub name: String,
