@@ -1,5 +1,3 @@
-use std::{fmt::format, result};
-
 use auth::models::user_model::User;
 use axum::{extract::State, http::StatusCode, Extension, Json};
 use mongodb::{
@@ -57,8 +55,8 @@ pub async fn create_issue(
         id: None,
         title: new_issue.title,
         description: new_issue.description,
-        status: "To Do".to_string(),
-        priority: Priority::Medium,
+        status: new_issue.status.unwrap_or("To Do".to_string()),
+        priority: new_issue.priority.unwrap_or(Priority::Medium),
     };
 
     let insert_result = issue_collection
