@@ -1,6 +1,7 @@
 FROM rust:latest AS builder
 
 COPY ./auth /auth
+COPY ./board_api /board_api
 
 RUN USER=root cargo new --bin issue_api
 WORKDIR /issue_api

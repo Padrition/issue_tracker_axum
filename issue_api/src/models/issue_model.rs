@@ -17,3 +17,12 @@ pub struct Issue {
     pub status: String,
     pub priority: Priority,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct IssueCreate {
+    pub board_id: String,
+    pub title: String,
+    pub description: String,
+    pub status: Option<String>,
+    pub priority: Option<Priority>,
+}

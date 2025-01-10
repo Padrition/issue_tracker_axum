@@ -9,6 +9,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod controllers;
 mod models;
+mod service;
+mod utils;
 
 #[tokio::main]
 async fn main() {
@@ -17,7 +19,7 @@ async fn main() {
     let addr =
         env::var("MICROSERVICE_ADDRESS").expect("Could not interpret key MICROSERVICE_ADDRESS");
 
-    let port = env::var("BOARD_API_PORT").expect("Could not interpret key BOARD_API_PORT");
+    let port = env::var("ISSUE_API_PORT").expect("Could not interpret key ISSUE_API_PORT");
 
     tracing_subscriber::registry()
         .with(
