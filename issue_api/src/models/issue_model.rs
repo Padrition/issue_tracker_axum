@@ -17,3 +17,21 @@ pub struct Issue {
     pub status: String,
     pub priority: Priority,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct IssueCreate {
+    pub board_id: String,
+    pub title: String,
+    pub description: String,
+    pub status: Option<String>,
+    pub priority: Option<Priority>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct IssueUpdate {
+    pub id: String,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub status: Option<String>,
+    pub priority: Option<Priority>,
+}

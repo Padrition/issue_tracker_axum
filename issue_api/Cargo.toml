@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 auth ={ path = "../auth" }
+board_api = { path = "../board_api" }
 axum = "0.7.7"
 mongodb = "3.1.0"
 serde = { version = "1.0.215", features = ["derive"] }
@@ -17,3 +18,4 @@ jsonwebtoken = "9.3.0"
 rust-argon2 = "2.1.0"
 serde_json = "1.0.132"
 dotenvy = "0.15.7"
+futures = "0.3.31"
