@@ -13,7 +13,7 @@ use mongodb::{
 
 use crate::{
     models::{
-        issue_model::{Issue, IssueCreate, Priority},
+        issue_model::{Issue, IssueCreate, IssueUpdate, Priority},
         issue_response::IssueError,
     },
     utils::app_state::AppState,
@@ -192,4 +192,82 @@ pub async fn get_issue(
         })?;
 
     Ok(Json(issue))
+}
+
+#[debug_handler]
+pub async fn update_issue(
+    State(state): State<AppState>,
+    Extension(current_user): Extension<User>,
+    Json(issue_update): Json<IssueUpdate>,
+) -> Result<Json<Issue>, IssueError> {
+    let issue_collection = &state.issue_collection;
+    let board_collection = &state.board_collection;
+
+    let issue_objid = ObjectId::parse_str(&issue_update.id).map_err(|err| IssueError {
+        message: format!("Error parsing id to ObjectId: {err}"),
+        status_code: StatusCode::INTERNAL_SERVER_ERROR,
+    })?;
+
+    let board = board_collection
+        .find_one(doc! {"issues": issue_objid})
+        .await
+        .map_err(|err| IssueError {
+            message: format!("Error finding board: {err}"),
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+        })?
+        .ok_or(IssueError {
+            message: "Board not found".to_string(),
+            status_code: StatusCode::NOT_FOUND,
+        })?;
+
+    if !board.members.contains(&current_user.email) {
+        return Err(IssueError {
+            message: "Forbidden".to_string(),
+            status_code: StatusCode::FORBIDDEN,
+        });
+    }
+
+    let issue = issue_collection
+        .find_one(doc! {"_id": issue_objid})
+        .await
+        .map_err(|err| IssueError {
+            message: format!("Error finding issue: {err}"),
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+        })?
+        .ok_or({
+            IssueError {
+                message: "Issue ot found".to_string(),
+                status_code: StatusCode::NOT_FOUND,
+            }
+        })?;
+
+    let updated_issue = Issue {
+        id: Some(issue_objid),
+        title: issue_update.title.unwrap_or(issue.title),
+        description: issue_update.description.unwrap_or(issue.description),
+        status: issue_update.status.unwrap_or(issue.status),
+        priority: issue_update.priority.unwrap_or(issue.priority),
+    };
+
+    issue_collection
+        .replace_one(doc! {"_id": issue_objid}, updated_issue)
+        .await
+        .map_err(|err| IssueError {
+            message: format!("Error replacing issue :{err}"),
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+        })?;
+
+    let new_issue = issue_collection
+        .find_one(doc! {"_id": issue_objid})
+        .await
+        .map_err(|err| IssueError {
+            message: format!("Error finding issue: {err}"),
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+        })?
+        .ok_or(IssueError {
+            message: "Issue not found".to_string(),
+            status_code: StatusCode::NOT_FOUND,
+        })?;
+
+    Ok(Json(new_issue))
 }

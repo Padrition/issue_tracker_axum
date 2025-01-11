@@ -1,13 +1,13 @@
 use auth::auth_middleware::authorization_middleware;
 use axum::{
     middleware,
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 use mongodb::Client;
 
 use crate::{
-    service::issue_service::{create_issue, get_issue, get_issues},
+    service::issue_service::{create_issue, get_issue, get_issues, update_issue},
     utils::app_state::AppState,
 };
 
@@ -42,6 +42,13 @@ pub fn issue_router(client: Client) -> Router {
         .route(
             "/:id",
             get(get_issue).layer(middleware::from_fn_with_state(
+                collection_user.clone(),
+                authorization_middleware,
+            )),
+        )
+        .route(
+            "/",
+            put(update_issue).layer(middleware::from_fn_with_state(
                 collection_user.clone(),
                 authorization_middleware,
             )),
