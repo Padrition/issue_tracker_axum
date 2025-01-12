@@ -20,6 +20,7 @@ pub struct Issue {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct IssueCreate {
+    #[serde(rename = "boardId")]
     pub board_id: String,
     pub title: String,
     pub description: String,
